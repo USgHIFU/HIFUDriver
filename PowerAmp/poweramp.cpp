@@ -12,7 +12,7 @@ PowerAmp::PowerAmp(QObject *parent) : QObject(parent)
     initialize();
 
     if (exist())
-    {        
+    {
         qCDebug(PA()) << PA().categoryName()
                       << "Connected to the port of "
                       << m_serialPort->portName() << ".";
@@ -95,10 +95,10 @@ void PowerAmp::setPort()
                 return;
             }
         }
-        delete m_serialPort;
-        QSerialPort* m_serialPort = NULL;
-        qCDebug(PA()) << PA().categoryName() << "Failed to initialize.";
+        delete m_serialPort;        
     }
+    m_serialPort = NULL;
+    qCDebug(PA()) << PA().categoryName() << "Failed to initialize.";
 }
 
 void PowerAmp::readConfig()

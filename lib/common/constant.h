@@ -1,8 +1,6 @@
 #ifndef CONSTANT
 #define CONSTANT
 
-#define CONFIG_PATH "../lib/config/config.ini"
-
 //  SONICATION PARAMETERS
 #define VOLTAGE 14
 #define MS_UNIT 1000

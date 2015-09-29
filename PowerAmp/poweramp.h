@@ -27,12 +27,16 @@ public:
         ECHO_TEMP
     };
 
+    //  initialize the serial port for power amplifiers
+    //  used in the constructor or other places
     void initialize();
     inline bool exist() {return m_serialPort != NULL ? true : false;}
 
     bool resetSingle(int id);
+    //  send only 5 bytes to reset all the power amplifiers
     void resetAll2();
     bool startSingle(int id, VOLT volt);
+    //  send only 5 bytes to start all the power amplifiers at the set voltage
     void startAll2(VOLT volt);
     VOLT echoVolt(int id);
     DEGREE echoTemp(int id);
@@ -46,11 +50,13 @@ signals:
     void actionCompleted();
 
 private:
+    //  set the serial port for the communication of power amplifiers
     void setPort();
     QSerialPort* m_serialPort;
     QString m_portName;
 
-    void readBack(QByteArray baId,QByteArray baVolt,QByteArray baCheck);
+    //  the procedure of sending the set bytes and reading the echoed bytes
+    void echo(QByteArray baId,QByteArray baVolt,QByteArray baCheck);
     QByteArray m_baRead;
 
     QList<int> m_errorId;

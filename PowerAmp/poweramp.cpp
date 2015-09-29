@@ -81,7 +81,7 @@ void PowerAmp::setPort()
     foreach (const QSerialPortInfo &serialPortInfo,serialPortInfoList)
     {
         m_serialPort = new QSerialPort(serialPortInfo);
-        readBack(baId,baVolt,baCheck);
+        echo(baId,baVolt,baCheck);
 
         if (!m_baRead.isEmpty())
         {
@@ -99,6 +99,45 @@ void PowerAmp::setPort()
     }
     m_serialPort = NULL;
     qCDebug(PA()) << PA().categoryName() << "Failed to initialize.";
+}
+
+void PowerAmp::echo(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
+{
+    if (!baCheck.isEmpty())
+    {
+        if (open())
+        {
+            m_serialPort->write(baId+baVolt+baCheck);
+
+            if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
+            {
+                qDebug() << "readyRead signal emitted.";
+                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+
+                while(m_serialPort->bytesAvailable() != 5)
+                {
+                    if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
+                    {
+                        //  Do nothing, wait
+                        qDebug() << "readyRead signal emitted.";
+                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+                    }else
+                    {
+                        qDebug() << "cannot emit readyRead signal.";
+                        break;
+                    }
+                }
+            }else
+            {
+                qDebug() << "cannot emit readyRead signal.";
+            }
+
+            if (m_serialPort->bytesAvailable())
+            {
+                m_baRead.append(m_serialPort->readAll());
+            }
+        }
+    }
 }
 
 void PowerAmp::readConfig()
@@ -235,45 +274,6 @@ DEGREE PowerAmp::ba2temp(QByteArray baEcho)
     return temp;
 }
 
-void PowerAmp::readBack(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
-{
-    if (!baCheck.isEmpty())
-    {
-        if (open())
-        {
-            m_serialPort->write(baId+baVolt+baCheck);
-
-            if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
-            {
-                qDebug() << "readyRead signal emitted.";
-                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
-
-                while(m_serialPort->bytesAvailable() != 5)
-                {
-                    if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
-                    {
-                        //  Do nothing, wait
-                        qDebug() << "readyRead signal emitted.";
-                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
-                    }else
-                    {
-                        qDebug() << "cannot emit readyRead signal.";
-                        break;
-                    }
-                }
-            }else
-            {
-                qDebug() << "cannot emit readyRead signal.";
-            }
-
-            if (m_serialPort->bytesAvailable())
-            {
-                m_baRead.append(m_serialPort->readAll());
-            }
-        }
-    }
-}
-
 bool PowerAmp::startSingle(int id, VOLT volt)
 {
     //  optimize: startAll, the same BaVolt, BaCheck with BaId
@@ -282,7 +282,7 @@ bool PowerAmp::startSingle(int id, VOLT volt)
     QByteArray baVolt = computeBaVolt(START,volt);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
-    readBack(baId,baVolt,baCheck);
+    echo(baId,baVolt,baCheck);
 
     if (!m_baRead.isEmpty())
     {
@@ -299,9 +299,9 @@ bool PowerAmp::startSingle(int id, VOLT volt)
                       << " with " << volt << "v successfully.";
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Failed to start #" << id
-                      << " with " << volt << "v.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to start #" << id
+                        << " with " << volt << "v.";
     }
 
     return success;
@@ -350,12 +350,12 @@ bool PowerAmp::startAll(VOLT volt)
         emit actionCompleted();
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Failed to start all the power amplifiers.";
-        qCDebug(PA()) << PA().categoryName()
-                      << m_errorId.size() << "power amplifiers have error.";
-        qCDebug(PA()) << PA().categoryName()
-                      << "They are: " << "#" << m_errorId;
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to start all the power amplifiers.";
+        qCWarning(PA()) << PA().categoryName()
+                        << m_errorId.size() << "power amplifiers have error.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "They are: " << "#" << m_errorId;
         m_errorId.clear();
     }
 
@@ -373,9 +373,7 @@ void PowerAmp::startAll2(VOLT volt)
 
     if (open())
     {
-        m_serialPort->write(baId);
-        m_serialPort->write(baVolt);
-        m_serialPort->write(baCheck);
+        m_serialPort->write(baId+baVolt+baCheck);
     }
 }
 
@@ -386,7 +384,7 @@ bool PowerAmp::resetSingle(int id)
     QByteArray baVolt = computeBaVolt(RESET,1);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
-    readBack(baId,baVolt,baCheck);
+    echo(baId,baVolt,baCheck);
 
     if (!m_baRead.isEmpty())
     {
@@ -402,8 +400,8 @@ bool PowerAmp::resetSingle(int id)
                       << "Reset #" << id << " successfully.";
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Failed to reset #" << id << ".";
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to reset #" << id << ".";
     }
 
     return success;
@@ -454,12 +452,12 @@ bool PowerAmp::resetAll()
 
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Failed to reset all the power amplifiers.";
-        qCDebug(PA()) << PA().categoryName()
-                      << m_errorId.size() << "power amplifiers have error.";
-        qCDebug(PA()) << PA().categoryName()
-                      << "They are:" << "#" << m_errorId;
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to reset all the power amplifiers.";
+        qCWarning(PA()) << PA().categoryName()
+                        << m_errorId.size() << "power amplifiers have error.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "They are:" << "#" << m_errorId;
         m_errorId.clear();
     }
 
@@ -489,7 +487,7 @@ VOLT PowerAmp::echoVolt(int id)
     QByteArray baVolt = computeBaVolt(ECHO_VOLT,1);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
-    readBack(baId,baVolt,baCheck);
+    echo(baId,baVolt,baCheck);
 
     if (!m_baRead.isEmpty())
     {
@@ -506,8 +504,8 @@ VOLT PowerAmp::echoVolt(int id)
                       << " is " << volt << "v.";
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Cannot echo the voltage of #" << id << ".";
+        qCWarning(PA()) << PA().categoryName()
+                        << "Cannot echo the voltage of #" << id << ".";
     }
     return volt;
 }
@@ -519,7 +517,7 @@ DEGREE PowerAmp::echoTemp(int id)
     QByteArray baVolt = computeBaVolt(ECHO_TEMP,1);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
-    readBack(baId,baVolt,baCheck);
+    echo(baId,baVolt,baCheck);
 
     if (!m_baRead.isEmpty())
     {
@@ -536,8 +534,8 @@ DEGREE PowerAmp::echoTemp(int id)
                       << " is " << temp << "degrees.";
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Cannot echo the temperature of #" << id << ".";
+        qCWarning(PA()) << PA().categoryName()
+                        << "Cannot echo the temperature of #" << id << ".";
     }
 
     return temp;
@@ -563,8 +561,8 @@ bool PowerAmp::open()
                       << "Opened the serial port successfully.";
     }else
     {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Failed to open the serial port.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to open the serial port.";
     }
 
     return success;

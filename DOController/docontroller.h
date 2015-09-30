@@ -26,7 +26,7 @@ public:
     void disable();
 
 signals:
-    void errorOccurred(QString error);
+    void error(QString errorString);
 
 private:    
     InstantDoCtrl *m_instantDoCtrl;

@@ -2,7 +2,7 @@
 #define MACRO
 
 #define SEPERATOR "********************"
-#define CONFIG_PATH "../lib/config/config.ini"
+#define SETTINGS_PATH "../lib/config/config.ini"
 
 typedef double Coordinate;
 typedef unsigned char COUNT;

@@ -35,6 +35,8 @@
 //  FINISH
 
 //  PA PARAMETERS
+#define DEV_TEST_COUNT 2
+#define SAFE_COUNTER 5
 #define DEV_COUNT_MAX 144
 #define VOLT_MAX 18
 #define TEST_CHANNEL 15

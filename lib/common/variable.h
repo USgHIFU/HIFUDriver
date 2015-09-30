@@ -11,42 +11,42 @@ enum cmdType
     RESUME
 };
 
-struct Plane2DCoordinate
+typedef struct Plane2DCoordinate
 {
     Coordinate x;
     Coordinate y;
-};
+}_2DCor;
 
-struct Spot3DCoordinate
+typedef struct Spot3DCoordinate
 {
     Coordinate x;
     Coordinate y;
     Coordinate z;
-};
+}_3DCor;
 
-struct SpotSonicationParameter
+typedef struct SpotSonicationParameter
 {
     VOLT volt;
     int totalTime;
     int period;
     int dutyCycle;
     int coolingTime;
-};
+}_SoniParam;
 
-struct SessionRecorder
+typedef struct SessionRecorder
 {
     int spotIndex;
     int periodIndex;
-};
+}_SesRec;
 
-struct SessionParameter
+typedef struct SessionParameter
 {
     int spotCount;
     int periodCount;
     int dutyOn;
     int dutyOff;
     int coolingTime;
-};
+}_SesParam;
 
 #endif // VARIABLE
 

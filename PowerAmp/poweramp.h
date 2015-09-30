@@ -38,7 +38,9 @@ public:
     bool startSingle(int id, VOLT volt);
     //  send only 5 bytes to start all the power amplifiers at the set voltage
     void startAll2(VOLT volt);
+    //  get the current voltage of the set power amplifier
     VOLT echoVolt(int id);
+    //  get the current temperature of the set power amplifier
     DEGREE echoTemp(int id);
 
 public slots:
@@ -69,7 +71,7 @@ private:
 
     QByteArray computeBaId(int id);
     QByteArray computeBaVolt(ACTION action, VOLT volt);
-    QByteArray computeBaCheck(QByteArray baId,QByteArray baVolt);
+    QByteArray computeBaCheck(QByteArray baId, QByteArray baVolt);
     VOLT ba2volt(QByteArray baEcho);
     DEGREE ba2temp(QByteArray baEcho);
 
@@ -80,8 +82,8 @@ private:
     int genRandomNum();
     QByteArray genSendBytes();
 
-    void readConfig();
-    void writeConfig();
+    void readSettings();
+    void updateSettings();
 
 private slots:
     void handleError(QSerialPort::SerialPortError serialError);

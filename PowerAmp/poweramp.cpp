@@ -41,11 +41,11 @@ PowerAmp::~PowerAmp()
 void PowerAmp::initialize()
 {
     qCDebug(PA()) << PA().categoryName() << "Initialization...";
-    for (int i=0;i<2;i++)
+    for (int i=1;i<=DEV_TEST_COUNT;i++)
     {
         //  Generate a random id of PA channel
         int ranId = genRanId();        
-        readConfig();
+        readSettings();
         m_serialPort = new QSerialPort(m_portName);
 
         if (resetSingle(ranId))
@@ -55,9 +55,9 @@ void PowerAmp::initialize()
         }
     }
 
-    qCDebug(PA()) << PA().categoryName() << "The port name was changed.";
+    qCDebug(PA()) << PA().categoryName() << "The name of the serial port was changed.";
 
-    for (int i=0;i<2;i++)
+    for (int i=1;i<DEV_TEST_COUNT;i++)
     {
         setPort();
     }
@@ -90,7 +90,7 @@ void PowerAmp::setPort()
             if (checkReceivedBytes(baRead,baSend))
             {
                 m_portName = serialPortInfo.portName();
-                writeConfig();
+                updateSettings();
                 qCDebug(PA()) << PA().categoryName() << "Successfully initialized.";
                 return;
             }
@@ -99,6 +99,74 @@ void PowerAmp::setPort()
     }
     m_serialPort = NULL;
     qCDebug(PA()) << PA().categoryName() << "Failed to initialize.";
+}
+
+bool PowerAmp::open()
+{
+    bool success = false;
+    if (exist())
+    {
+        if (m_serialPort->isOpen())
+        {
+            success = true;
+        }else
+        {
+            success = m_serialPort->open(QIODevice::ReadWrite);
+        }
+    }
+
+    if (success)
+    {
+        qCDebug(PA()) << PA().categoryName()
+                      << "Opened the serial port successfully.";
+    }else
+    {
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to open the serial port.";
+    }
+
+    return success;
+}
+
+void PowerAmp::close()
+{
+    if (open())
+    {
+        m_serialPort->close();
+    }
+}
+
+void PowerAmp::handleError(QSerialPort::SerialPortError serialError)
+{
+    emit error(m_serialPort->errorString());
+}
+
+int PowerAmp::genRanId()
+{
+    //  Generate a random number of PA channel
+    int ranId = genRandomNum() % DEV_COUNT_MAX;
+    while (!ranId)
+    {
+        ranId = genRandomNum() % DEV_COUNT_MAX;
+    }
+    return ranId;
+}
+
+VOLT PowerAmp::genRanVolt()
+{
+    VOLT volt = (VOLT)(genRandomNum() % (VOLT_MAX * 10)) / 10;
+    while (volt == 0)
+    {
+        volt = (VOLT)(genRandomNum() % (VOLT_MAX * 10)) / 10;
+    }
+    return volt;
+}
+
+int PowerAmp::genRandomNum()
+{
+    QTime time = QTime::currentTime();
+    qsrand(time.msec() + time.second()*1000);
+    return qrand();
 }
 
 void PowerAmp::echo(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
@@ -111,25 +179,26 @@ void PowerAmp::echo(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
 
             if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
             {
-                qDebug() << "readyRead signal emitted.";
-                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
-
+                //  test
+//                qDebug() << "readyRead signal emitted.";
+//                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
                 while(m_serialPort->bytesAvailable() != 5)
                 {
                     if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
                     {
                         //  Do nothing, wait
-                        qDebug() << "readyRead signal emitted.";
-                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+                        //  test
+//                        qDebug() << "readyRead signal emitted.";
+//                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
                     }else
                     {
-                        qDebug() << "cannot emit readyRead signal.";
+//                        qDebug() << "cannot emit readyRead signal.";
                         break;
                     }
                 }
             }else
             {
-                qDebug() << "cannot emit readyRead signal.";
+//                qDebug() << "cannot emit readyRead signal.";
             }
 
             if (m_serialPort->bytesAvailable())
@@ -140,16 +209,16 @@ void PowerAmp::echo(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
     }
 }
 
-void PowerAmp::readConfig()
+void PowerAmp::readSettings()
 {
-    QSettings* settings = new QSettings(CONFIG_PATH,QSettings::IniFormat);
+    QSettings* settings = new QSettings(SETTINGS_PATH,QSettings::IniFormat);
     m_portName = settings->value("PowerAmp/port").toString();
     delete settings;
 }
 
-void PowerAmp::writeConfig()
+void PowerAmp::updateSettings()
 {
-    QSettings* settings = new QSettings(CONFIG_PATH,QSettings::IniFormat);
+    QSettings* settings = new QSettings(SETTINGS_PATH,QSettings::IniFormat);
     settings->setValue("PowerAmp/port",m_portName);
     delete settings;
 }
@@ -322,8 +391,7 @@ bool PowerAmp::startAll(VOLT volt)
             else
                 safeCounter++;
 
-            //  TODO
-            if (safeCounter == 5)
+            if (safeCounter == SAFE_COUNTER)
             {
                 errorId.append(id);
                 break;
@@ -423,7 +491,7 @@ bool PowerAmp::resetAll()
             else
                 safeCounter++;
 
-            if (safeCounter == 5)
+            if (safeCounter == SAFE_COUNTER)
             {
                 errorId.append(id);
                 break;
@@ -539,72 +607,4 @@ DEGREE PowerAmp::echoTemp(int id)
     }
 
     return temp;
-}
-
-bool PowerAmp::open()
-{
-    bool success = false;
-    if (exist())
-    {
-        if (m_serialPort->isOpen())
-        {
-            success = true;
-        }else
-        {
-            success = m_serialPort->open(QIODevice::ReadWrite);
-        }
-    }
-
-    if (success)
-    {
-        qCDebug(PA()) << PA().categoryName()
-                      << "Opened the serial port successfully.";
-    }else
-    {
-        qCWarning(PA()) << PA().categoryName()
-                        << "Failed to open the serial port.";
-    }
-
-    return success;
-}
-
-void PowerAmp::close()
-{
-    if (open())
-    {
-        m_serialPort->close();
-    }
-}
-
-void PowerAmp::handleError(QSerialPort::SerialPortError serialError)
-{
-    emit error(m_serialPort->errorString());
-}
-
-int PowerAmp::genRanId()
-{
-    //  Generate a random number of PA channel
-    int ranId = genRandomNum() % DEV_COUNT_MAX;
-    while (!ranId)
-    {
-        ranId = genRandomNum() % DEV_COUNT_MAX;
-    }
-    return ranId;
-}
-
-VOLT PowerAmp::genRanVolt()
-{
-    VOLT volt = (VOLT)(genRandomNum() % (VOLT_MAX * 10)) / 10;
-    while (volt == 0)
-    {
-        volt = (VOLT)(genRandomNum() % (VOLT_MAX * 10)) / 10;
-    }
-    return volt;
-}
-
-int PowerAmp::genRandomNum()
-{
-    QTime time = QTime::currentTime();
-    qsrand(time.msec() + time.second()*1000);
-    return qrand();
 }

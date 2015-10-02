@@ -1,14 +1,14 @@
 #ifndef POWERAMP_H
 #define POWERAMP_H
 
-#include "poweramp_global.h"
-#include "constant.h"
-#include "macro.h"
-
 #include <QObject>
 #include <QtSerialPort/QSerialPort>
 #include <QList>
 #include <QLoggingCategory>
+
+#include "poweramp_global.h"
+#include "constant.h"
+#include "macro.h"
 
 Q_DECLARE_LOGGING_CATEGORY(PA)
 

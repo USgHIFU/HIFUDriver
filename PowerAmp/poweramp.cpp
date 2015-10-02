@@ -1,9 +1,9 @@
-#include "math.h"
-#include "poweramp.h"
-
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTime>
 #include <QSettings>
+
+#include "math.h"
+#include "poweramp.h"
 
 Q_LOGGING_CATEGORY(PA,"POWER AMPLIFIER")
 

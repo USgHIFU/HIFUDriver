@@ -165,7 +165,7 @@ VOLT PowerAmp::genRanVolt()
 int PowerAmp::genRandomNum()
 {
     QTime time = QTime::currentTime();
-    qsrand(time.msec() + time.second()*1000);
+    qsrand(time.msec() + time.second() * MS_UNIT);
     return qrand();
 }
 
@@ -311,17 +311,18 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
 
     if (validLength)
     {
-        checked = (baReceive[0] == (baSend[0] - 0x80));
+        checked = ((baReceive[0] == (baSend[0] - 0x80)) ||
+                   (baReceive[0] == baSend[0])) &&
+                  (baReceive[1] == baSend[1]);
         switch (baSend[2])
         {
         case 0x00: case 0x40:
-            checked = ((checked || (baReceive[0] == baSend[0])) &&
-                      (baReceive[1] == baSend[1]) &&
+            checked = (checked &&
                       (baReceive[2] == baSend[2]) &&
                       (baReceive[3] == baSend[3]) &&
                       (baReceive[4] == baSend[4]));
             break;
-        case 0x10: case 0x20:
+        case 0x10: case 0x20:            
             break;
         }
     }
@@ -430,8 +431,10 @@ bool PowerAmp::startAll(VOLT volt)
     return success;
 }
 
-void PowerAmp::startAll2(VOLT volt)
+bool PowerAmp::startAll2(VOLT volt)
 {
+    bool success = false;
+
     QByteArray baId;
     baId[0] = 0x80;
     baId[1] = 0x00;
@@ -442,7 +445,37 @@ void PowerAmp::startAll2(VOLT volt)
     if (open())
     {
         m_serialPort->write(baId+baVolt+baCheck);
+        m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
+
+    VOLT tmpVolt;
+    for (int i=1;i<=DEV_COUNT_MAX;i++)
+    {
+        tmpVolt = echoVolt(i);
+        if (tmpVolt == -1)
+        {
+            m_errorId.append(i);
+        }
+    }
+
+    if (m_errorId.isEmpty())
+    {
+        qCDebug(PA()) << PA().categoryName()
+                      << "Started all the power amplifiers successfully.";
+        success = true;
+        emit actionCompleted();
+    }else
+    {
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to start all the power amplifiers.";
+        qCWarning(PA()) << PA().categoryName()
+                        << m_errorId.size() << "power amplifiers have error.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "They are: " << "#" << m_errorId;
+        m_errorId.clear();
+    }
+
+    return success;
 }
 
 bool PowerAmp::resetSingle(int id)
@@ -532,8 +565,10 @@ bool PowerAmp::resetAll()
     return success;
 }
 
-void PowerAmp::resetAll2()
+bool PowerAmp::resetAll2()
 {
+    bool success = false;
+
     QByteArray baSend;
     baSend[0] = 0x80;
     baSend[1] = 0x00;
@@ -544,7 +579,37 @@ void PowerAmp::resetAll2()
     if (open())
     {
         m_serialPort->write(baSend);
+        m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
+
+    VOLT tmpVolt;
+    for (int i=1;i<=DEV_COUNT_MAX;i++)
+    {
+        tmpVolt = echoVolt(i);
+        if (tmpVolt == -1)
+        {
+            m_errorId.append(i);
+        }
+    }
+    if (m_errorId.isEmpty())
+    {
+        success = true;
+        qCDebug(PA()) << PA().categoryName()
+                      << "Reset all the power amplifiers successfully.";
+        emit actionCompleted();
+
+    }else
+    {
+        qCWarning(PA()) << PA().categoryName()
+                        << "Failed to reset all the power amplifiers.";
+        qCWarning(PA()) << PA().categoryName()
+                        << m_errorId.size() << "power amplifiers have error.";
+        qCWarning(PA()) << PA().categoryName()
+                        << "They are:" << "#" << m_errorId;
+        m_errorId.clear();
+    }
+
+    return success;
 }
 
 VOLT PowerAmp::echoVolt(int id)

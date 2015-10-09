@@ -34,10 +34,10 @@ public:
 
     bool resetSingle(int id);
     //  send only 5 bytes to reset all the power amplifiers
-    void resetAll2();
+    bool resetAll2();
     bool startSingle(int id, VOLT volt);
     //  send only 5 bytes to start all the power amplifiers at the set voltage
-    void startAll2(VOLT volt);
+    bool startAll2(VOLT volt);
     //  get the current voltage of the set power amplifier
     VOLT echoVolt(int id);
     //  get the current temperature of the set power amplifier

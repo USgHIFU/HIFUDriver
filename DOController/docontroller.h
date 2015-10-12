@@ -22,8 +22,8 @@ public:
     void writeData(int port, quint8 state);
     void sendPhase(quint8 channel, quint8 phase);
     void loadPhase();
-    void enable();
-    void disable();
+    inline void enable() { writeData(PORT_ENABLE,BYTE_ENABLE); }
+    inline void disable(){ writeData(PORT_DISABLE,BYTE_DISABLE); }
 
 signals:
     void error(QString errorString);

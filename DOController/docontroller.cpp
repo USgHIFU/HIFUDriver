@@ -24,10 +24,11 @@ void DOController::selectDevice(QString deviceName)
 
     ErrorCode errorCode = Success;
     errorCode = m_instantDoCtrl->setSelectedDevice(selected);
-    if (errorCode == ErrorDeviceNotExist)
-    {
-        m_instantDoCtrl = NULL;
-    }
+    m_instantDoCtrl = ((errorCode == ErrorDeviceNotExist) ? NULL : m_instantDoCtrl);
+//    if (errorCode == ErrorDeviceNotExist)
+//    {
+//        m_instantDoCtrl = NULL;
+//    }
     checkError(errorCode);
 }
 
@@ -66,16 +67,16 @@ void DOController::loadPhase()
     writeData(PORT_LOAD,BYTE_LOCK);
 }
 
-void DOController::enable()
-{
+//void DOController::enable()
+//{
 //    quint8 byteForEnable = (quint8)64;
 //    writeData(PORT_ENABLE,byteForEnable);
-    writeData(PORT_ENABLE,BYTE_ENABLE);
-}
+//    writeData(PORT_ENABLE,BYTE_ENABLE);
+//}
 
-void DOController::disable()
-{
+//void DOController::disable()
+//{
 //    quint8 byteForDisable = (quint8)0;
 //    writeData(PORT_DISABLE,byteForDisable);
-    writeData(PORT_DISABLE,BYTE_DISABLE);
-}
+//    writeData(PORT_DISABLE,BYTE_DISABLE);
+//}

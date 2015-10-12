@@ -66,8 +66,8 @@ private:
     bool open();
     void close();
 
-    int validateId(int id);
-    VOLT validateVolt(VOLT volt);
+    inline int validateId(int id) { return (( 0 <= id && id <= DEV_COUNT_MAX ) ? id : -1); }
+    inline VOLT validateVolt(VOLT volt) { return (( volt < 0 || volt > VOLT_MAX ) ? -1 : volt); }
 
     QByteArray computeBaId(int id);
     QByteArray computeBaVolt(ACTION action, VOLT volt);

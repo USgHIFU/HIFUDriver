@@ -224,22 +224,22 @@ void PowerAmp::updateSettings()
     delete settings;
 }
 
-int PowerAmp::validateId(int id)
-{
-    return (( 0 <= id && id <= DEV_COUNT_MAX ) ? id : -1);
+//int PowerAmp::validateId(int id)
+//{
+//    return (( 0 <= id && id <= DEV_COUNT_MAX ) ? id : -1);
 //    if ( 0 <= id && id <= DEV_COUNT_MAX )
 //        return id;
 //    else
 //        return -1;
-}
+//}
 
-VOLT PowerAmp::validateVolt(VOLT volt)
-{
-    return (( volt < 0 || volt > VOLT_MAX ) ? -1 : volt);
+//VOLT PowerAmp::validateVolt(VOLT volt)
+//{
+//    return (( volt < 0 || volt > VOLT_MAX ) ? -1 : volt);
 //    if ( volt < 0 || volt > VOLT_MAX )
 //        volt = -1;
 //    return volt;
-}
+//}
 
 QByteArray PowerAmp::computeBaId(int id)
 {

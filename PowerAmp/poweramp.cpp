@@ -106,13 +106,14 @@ bool PowerAmp::open()
     bool success = false;
     if (exist())
     {
-        if (m_serialPort->isOpen())
-        {
-            success = true;
-        }else
-        {
-            success = m_serialPort->open(QIODevice::ReadWrite);
-        }
+        success = m_serialPort->isOpen() ? true : m_serialPort->open(QIODevice::ReadWrite);
+//        if (m_serialPort->isOpen())
+//        {
+//            success = true;
+//        }else
+//        {
+//            success = m_serialPort->open(QIODevice::ReadWrite);
+//        }
     }
 
     if (success)
@@ -225,17 +226,19 @@ void PowerAmp::updateSettings()
 
 int PowerAmp::validateId(int id)
 {
-    if ( 0 <= id && id <= DEV_COUNT_MAX )
-        return id;
-    else
-        return -1;
+    return (( 0 <= id && id <= DEV_COUNT_MAX ) ? id : -1);
+//    if ( 0 <= id && id <= DEV_COUNT_MAX )
+//        return id;
+//    else
+//        return -1;
 }
 
 VOLT PowerAmp::validateVolt(VOLT volt)
 {
-    if ( volt < 0 || volt > VOLT_MAX )
-        volt = -1;
-    return volt;
+    return (( volt < 0 || volt > VOLT_MAX ) ? -1 : volt);
+//    if ( volt < 0 || volt > VOLT_MAX )
+//        volt = -1;
+//    return volt;
 }
 
 QByteArray PowerAmp::computeBaId(int id)
@@ -330,6 +333,9 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
     return checked;
 }
 
+//  TODO
+//  template function for ba2volt and ba2temp
+
 VOLT PowerAmp::ba2volt(QByteArray baEcho)
 {    
     int intVolt = (int)baEcho[2] * 128 + (int)baEcho[3];
@@ -356,10 +362,11 @@ bool PowerAmp::startSingle(int id, VOLT volt)
 
     if (!m_baRead.isEmpty())
     {
-        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-        {
-            success = true;
-        }
+        success = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? true : success;
+//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
+//        {
+//            success = true;
+//        }
         m_baRead.clear();
     }
     if (success)
@@ -448,11 +455,11 @@ bool PowerAmp::startAll2(VOLT volt)
         m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
 
-    VOLT tmpVolt;
+//    VOLT tmpVolt;
     for (int i=1;i<=DEV_COUNT_MAX;i++)
     {
-        tmpVolt = echoVolt(i);
-        if (tmpVolt == -1)
+//        tmpVolt = echoVolt(i);
+        if (echoVolt(i) == -1)
         {
             m_errorId.append(i);
         }
@@ -489,10 +496,11 @@ bool PowerAmp::resetSingle(int id)
 
     if (!m_baRead.isEmpty())
     {
-        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-        {
-            success = true;
-        }
+        success = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? true : success;
+//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
+//        {
+//            success = true;
+//        }
         m_baRead.clear();
     }
     if (success)
@@ -582,11 +590,11 @@ bool PowerAmp::resetAll2()
         m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
 
-    VOLT tmpVolt;
+//    VOLT tmpVolt;
     for (int i=1;i<=DEV_COUNT_MAX;i++)
     {
-        tmpVolt = echoVolt(i);
-        if (tmpVolt == -1)
+//        tmpVolt = echoVolt(i);
+        if (echoVolt(i) == -1)
         {
             m_errorId.append(i);
         }
@@ -624,10 +632,11 @@ VOLT PowerAmp::echoVolt(int id)
 
     if (!m_baRead.isEmpty())
     {
-        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-        {
-            volt = ba2volt(m_baRead);
-        }
+        volt = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? ba2volt(m_baRead) : volt;
+//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
+//        {
+//            volt = ba2volt(m_baRead);
+//        }
         m_baRead.clear();
     }
     if (volt != -1)
@@ -654,10 +663,11 @@ DEGREE PowerAmp::echoTemp(int id)
 
     if (!m_baRead.isEmpty())
     {
-        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-        {
-            temp = ba2temp(m_baRead);
-        }
+        temp = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? ba2temp(m_baRead) : temp;
+//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
+//        {
+//            temp = ba2temp(m_baRead);
+//        }
         m_baRead.clear();
     }
     if (temp != -1)

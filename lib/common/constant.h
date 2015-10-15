@@ -27,7 +27,7 @@
 #define PORT_LOAD 3
 #define PORT_ENABLE 3
 #define PORT_DISABLE 3
-#define BYTE_LOAD 0x70
+#define BYTE_LOAD 0x80
 #define BYTE_LOCK 0x00
 #define BYTE_ENABLE 0x40
 #define BYTE_DISABLE 0x00

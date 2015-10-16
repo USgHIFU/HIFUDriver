@@ -319,13 +319,18 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
                   (baReceive[1] == baSend[1]);
         switch (baSend[2])
         {
-        case 0x00: case 0x40:
+        case 0x00: case 0x40: case 0x41: case 0x42:
+        case 0x43: case 0x44: case 0x45: case 0x46:
+        case 0x47:
             checked = (checked &&
                       (baReceive[2] == baSend[2]) &&
                       (baReceive[3] == baSend[3]) &&
                       (baReceive[4] == baSend[4]));
             break;
         case 0x10: case 0x20:            
+            break;
+        default:
+            checked = false;
             break;
         }
     }

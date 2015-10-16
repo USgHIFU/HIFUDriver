@@ -5,6 +5,8 @@
 #include "math.h"
 #include "poweramp.h"
 
+#define FENG true
+
 Q_LOGGING_CATEGORY(PA,"POWER AMPLIFIER")
 
 PowerAmp::PowerAmp(QObject *parent) : QObject(parent)
@@ -43,8 +45,12 @@ void PowerAmp::initialize()
     qCDebug(PA()) << PA().categoryName() << "Initialization...";
     for (int i=1;i<=DEV_TEST_COUNT;i++)
     {
+#ifdef FENG
+        int ranId = i;
+#else
         //  Generate a random id of PA channel
-        int ranId = genRanId();        
+        int ranId = genRanId();
+#endif
         readSettings();
         m_serialPort = new QSerialPort(m_portName);
 

@@ -29,19 +29,20 @@ TreatSession::~TreatSession()
 
 void TreatSession::setSpots(QHash<float,QList<_3DCor> > spots)
 {
-    //  clear the previous spot settings
-    m_spots.clear();
     if (spots.isEmpty())
     {
         return;
         //  TODO
         //  Send a signal
     }
-    QHash<float,QList<_3DCor> >::iterator i;
-    for (i=spots.begin();i!=spots.end();i++)
-    {
-        m_spots.insert(i.key(),i.value());        
-    }
+    //  clear the previous spot settings
+    m_spots.clear();
+//    QHash<float,QList<_3DCor> >::iterator i;
+//    for (i=spots.begin();i!=spots.end();i++)
+//    {
+//        m_spots.insert(i.key(),i.value());
+//    }
+    m_spots = spots;
     m_currPlane = spots.begin().key();
     m_sessionParam.spotCount = spots.begin().value().size();
 }
@@ -125,41 +126,6 @@ void TreatSession::changeSpot()
     Coordinate z = spots.at(0).z;
     spots.removeAt(0);
     m_spots.insert(m_currPlane,spots);
-
-//    Coordinate x,y,z;
-
-//    if (m_spots.size() >= 1)
-//    {
-//        if (spots.size() >= 1)
-//        {
-//            qCDebug(Session()) << Session().categoryName()
-//                               << m_spots.size() << "planes left.";
-//            qCDebug(Session()) << Session().categoryName()
-//                               << spots.size() << " spots left in the current plane.";
-//            x = spots.at(0).x;
-//            y = spots.at(0).y;
-//            z = spots.at(0).z;
-//            spots.removeAt(0);
-//            if (spots.size() == 0)
-//            {
-//                m_spots.remove(m_currPlane);
-//                resetSessionRecorder();
-//                emit planeCompleted(m_currPlane);
-//                if (m_spots.size() >= 1)
-//                {
-//                    m_currPlane = m_spots.begin().key();
-//                    m_sessionParam.spotCount = m_spots.begin().value().size();
-//                }
-//            }else
-//            {
-//                m_spots.insert(m_currPlane,spots);
-//            }
-//        }
-//    }else
-//    {
-//        m_sessionParam.spotCount = 0;
-//        return;
-//    }
 
     //  compute the phases for the spot
     real_T volt[DEV_COUNT_MAX];
@@ -282,16 +248,18 @@ void TreatSession::timeoutFcn()
 
 void TreatSession::stop()
 {
-    //  stop delivering the acoustic energy
-    if (m_do->exist())
-    {
-        m_do->disable();
-    }
+//    //  stop delivering the acoustic energy
+//    if (m_do->exist())
+//    {
+//        m_do->disable();
+//    }
 
-    if (m_timer->isActive())
-    {
-        m_timer->stop();
-    }
+//    if (m_timer->isActive())
+//    {
+//        m_timer->stop();
+//    }
+
+    pause();
 
     if (m_pa->exist())
     {
@@ -301,13 +269,13 @@ void TreatSession::stop()
         }
     }
 
-    qCWarning(Session()) << Session().categoryName()
-                         << printLastAction(STOP)+printLastError(NoError);
-    qCWarning(Session()) << Session().categoryName()
-                         << "The spot #" << m_recorder.spotIndex
-                         << ", period #" << m_recorder.periodIndex
-                         << " is finished.";
-    qCWarning(Session()) << SEPERATOR;
+//    qCWarning(Session()) << Session().categoryName()
+//                         << printLastAction(STOP)+printLastError(NoError);
+//    qCWarning(Session()) << Session().categoryName()
+//                         << "The spot #" << m_recorder.spotIndex
+//                         << ", period #" << m_recorder.periodIndex
+//                         << " is finished.";
+//    qCWarning(Session()) << SEPERATOR;
 
     //  reset the session param
     resetSessionRecorder();

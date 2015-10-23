@@ -5,8 +5,6 @@
 #include "math.h"
 #include "poweramp.h"
 
-#define FENG true
-
 Q_LOGGING_CATEGORY(PA,"POWER AMPLIFIER")
 
 PowerAmp::PowerAmp(QObject *parent) : QObject(parent)
@@ -43,15 +41,14 @@ PowerAmp::~PowerAmp()
 void PowerAmp::initialize()
 {
     qCDebug(PA()) << PA().categoryName() << "Initialization...";
+#ifdef FENG
+    readSettings();
+    m_serialPort = new QSerialPort(m_portName);
+#else
     for (int i=1;i<=DEV_TEST_COUNT;i++)
     {
-#ifdef FENG
-        int ranId = i;
-#else
         //  Generate a random id of PA channel
-        int ranId = genRanId();
-#endif
-        readSettings();
+        int ranId = genRanId();readSettings();
         m_serialPort = new QSerialPort(m_portName);
 
         if (resetSingle(ranId))
@@ -67,6 +64,7 @@ void PowerAmp::initialize()
     {
         setPort();
     }
+#endif
 }
 
 void PowerAmp::setPort()
@@ -113,13 +111,6 @@ bool PowerAmp::open()
     if (exist())
     {
         success = m_serialPort->isOpen() ? true : m_serialPort->open(QIODevice::ReadWrite);
-//        if (m_serialPort->isOpen())
-//        {
-//            success = true;
-//        }else
-//        {
-//            success = m_serialPort->open(QIODevice::ReadWrite);
-//        }
     }
 
     if (success)
@@ -186,26 +177,31 @@ void PowerAmp::echo(QByteArray baId, QByteArray baVolt, QByteArray baCheck)
 
             if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
             {
-                //  test
-//                qDebug() << "readyRead signal emitted.";
-//                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+#ifdef FENG
+                qDebug() << "readyRead signal emitted.";
+                qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+#endif
                 while(m_serialPort->bytesAvailable() != 5)
                 {
                     if (m_serialPort->waitForReadyRead(ECHO_PERIOD))
                     {
-                        //  Do nothing, wait
-                        //  test
-//                        qDebug() << "readyRead signal emitted.";
-//                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+#ifdef FENG
+                        qDebug() << "readyRead signal emitted.";
+                        qDebug() << "bytesAvailable: " << m_serialPort->bytesAvailable();
+#endif
                     }else
                     {
-//                        qDebug() << "cannot emit readyRead signal.";
+#ifdef FENG
+                        qDebug() << "cannot emit readyRead signal.";
+#endif
                         break;
                     }
                 }
             }else
             {
-//                qDebug() << "cannot emit readyRead signal.";
+#ifdef FENG
+                qDebug() << "cannot emit readyRead signal.";
+#endif
             }
 
             if (m_serialPort->bytesAvailable())
@@ -229,23 +225,6 @@ void PowerAmp::updateSettings()
     settings->setValue("PowerAmp/port",m_portName);
     delete settings;
 }
-
-//int PowerAmp::validateId(int id)
-//{
-//    return (( 0 <= id && id <= DEV_COUNT_MAX ) ? id : -1);
-//    if ( 0 <= id && id <= DEV_COUNT_MAX )
-//        return id;
-//    else
-//        return -1;
-//}
-
-//VOLT PowerAmp::validateVolt(VOLT volt)
-//{
-//    return (( volt < 0 || volt > VOLT_MAX ) ? -1 : volt);
-//    if ( volt < 0 || volt > VOLT_MAX )
-//        volt = -1;
-//    return volt;
-//}
 
 QByteArray PowerAmp::computeBaId(int id)
 {
@@ -314,10 +293,10 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
 {
     bool checked = false;
     bool validLength = (baReceive.size() == baSend.size());
-    // test
-//    qDebug() << "baSend: " << baSend.toHex();
-//    qDebug() << "baReceive: " << baReceive.toHex();
-
+#ifdef FENG
+    qDebug() << "baSend: " << baSend.toHex();
+    qDebug() << "baReceive: " << baReceive.toHex();
+#endif
     if (validLength)
     {
         checked = ((baReceive[0] == (baSend[0] - 0x80)) ||
@@ -374,10 +353,6 @@ bool PowerAmp::startSingle(int id, VOLT volt)
     if (!m_baRead.isEmpty())
     {
         success = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? true : success;
-//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-//        {
-//            success = true;
-//        }
         m_baRead.clear();
     }
     if (success)
@@ -466,10 +441,8 @@ bool PowerAmp::startAll2(VOLT volt)
         m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
 
-//    VOLT tmpVolt;
     for (int i=1;i<=DEV_COUNT_MAX;i++)
     {
-//        tmpVolt = echoVolt(i);
         if (echoVolt(i) == -1)
         {
             m_errorId.append(i);
@@ -508,10 +481,6 @@ bool PowerAmp::resetSingle(int id)
     if (!m_baRead.isEmpty())
     {
         success = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? true : success;
-//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-//        {
-//            success = true;
-//        }
         m_baRead.clear();
     }
     if (success)
@@ -601,10 +570,8 @@ bool PowerAmp::resetAll2()
         m_serialPort->waitForReadyRead(ECHO_PERIOD);
     }
 
-//    VOLT tmpVolt;
     for (int i=1;i<=DEV_COUNT_MAX;i++)
     {
-//        tmpVolt = echoVolt(i);
         if (echoVolt(i) == -1)
         {
             m_errorId.append(i);
@@ -644,10 +611,6 @@ VOLT PowerAmp::echoVolt(int id)
     if (!m_baRead.isEmpty())
     {
         volt = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? ba2volt(m_baRead) : volt;
-//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-//        {
-//            volt = ba2volt(m_baRead);
-//        }
         m_baRead.clear();
     }
     if (volt != -1)
@@ -675,10 +638,6 @@ DEGREE PowerAmp::echoTemp(int id)
     if (!m_baRead.isEmpty())
     {
         temp = checkReceivedBytes(m_baRead,baId+baVolt+baCheck) ? ba2temp(m_baRead) : temp;
-//        if (checkReceivedBytes(m_baRead,baId+baVolt+baCheck))
-//        {
-//            temp = ba2temp(m_baRead);
-//        }
         m_baRead.clear();
     }
     if (temp != -1)

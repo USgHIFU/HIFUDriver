@@ -27,9 +27,11 @@ public:
     ~TreatSession();    
 
 //  TODO: get spots of different planes
+//  the unit of length: mm, the unit of angle: degree
     void setSpots(QHash<float,QList<_3DCor> > spots);
     void setSonicationParam(_SoniParam params);
     inline _SesRec getRecorder() { return m_recorder; }
+//  update the status after sonications finished
     inline QHash<QString, QVariant> getStatus() { return m_status; }
 
 public slots:
@@ -62,6 +64,7 @@ private:
     QHash<float,QList<_3DCor> > m_spots;
     QHash<float,QList<int> > m_spotOrder;
     _SoniParam m_sonicationParam;
+//  the angle of plane
     float m_currPlane;
 
     //  the parameters used for the treat session

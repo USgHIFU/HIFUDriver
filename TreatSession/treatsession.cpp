@@ -37,11 +37,6 @@ void TreatSession::setSpots(QHash<float,QList<_3DCor> > spots)
     }
     //  clear the previous spot settings
     m_spots.clear();
-//    QHash<float,QList<_3DCor> >::iterator i;
-//    for (i=spots.begin();i!=spots.end();i++)
-//    {
-//        m_spots.insert(i.key(),i.value());
-//    }
     m_spots = spots;
     m_currPlane = spots.begin().key();
     m_sessionParam.spotCount = spots.begin().value().size();
@@ -248,17 +243,6 @@ void TreatSession::timeoutFcn()
 
 void TreatSession::stop()
 {
-//    //  stop delivering the acoustic energy
-//    if (m_do->exist())
-//    {
-//        m_do->disable();
-//    }
-
-//    if (m_timer->isActive())
-//    {
-//        m_timer->stop();
-//    }
-
     pause();
 
     if (m_pa->exist())
@@ -269,8 +253,8 @@ void TreatSession::stop()
         }
     }
 
-//    qCWarning(Session()) << Session().categoryName()
-//                         << printLastAction(STOP)+printLastError(NoError);
+    qCWarning(Session()) << Session().categoryName()
+                         << printLastAction(STOP)+printLastError(NoError);
 //    qCWarning(Session()) << Session().categoryName()
 //                         << "The spot #" << m_recorder.spotIndex
 //                         << ", period #" << m_recorder.periodIndex

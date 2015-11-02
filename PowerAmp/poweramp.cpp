@@ -4,6 +4,7 @@
 
 #include "math.h"
 #include "poweramp.h"
+#include "time.h"
 
 Q_LOGGING_CATEGORY(PA,"POWER AMPLIFIER")
 
@@ -375,6 +376,7 @@ bool PowerAmp::startAll(VOLT volt)
     bool success = false;
     QList<int> errorId;
 
+    double time_Start = (double)clock();
     for (int id=1;id<=DEV_COUNT_MAX;id++)
     {
         int safeCounter = 0;
@@ -403,6 +405,9 @@ bool PowerAmp::startAll(VOLT volt)
             }
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "startAll Time: "<< (time_End - time_Start) / 1000.0 << "s";
 
     if (m_errorId.isEmpty())
     {
@@ -435,6 +440,7 @@ bool PowerAmp::startAll2(VOLT volt)
     QByteArray baVolt = computeBaVolt(START,volt);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
+    double time_Start = (double)clock();
     if (open())
     {
         m_serialPort->write(baId+baVolt+baCheck);
@@ -448,6 +454,9 @@ bool PowerAmp::startAll2(VOLT volt)
             m_errorId.append(i);
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "startAll2 Time: "<< (time_End - time_Start) / 1000.0 << "s";
 
     if (m_errorId.isEmpty())
     {

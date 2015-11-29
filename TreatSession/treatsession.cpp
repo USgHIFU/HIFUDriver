@@ -126,6 +126,16 @@ void TreatSession::changeSpot()
     real_T volt[DEV_COUNT_MAX];
     real_T angle[DEV_COUNT_MAX];
     PhaseInfo(1,x,y,z,volt,angle);
+    //  The phases of #22 and #23, #35 and #36, and #55 and #56 are inverted
+    double value = angle[21];
+    angle[21] = angle[22];
+    angle[22] = value;
+    value = angle[34];
+    angle[34] = angle[35];
+    angle[35] = value;
+    value = angle[54];
+    angle[54] = angle[55];
+    angle[55] = value;
 
     if (m_do->exist())
     {

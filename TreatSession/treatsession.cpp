@@ -12,6 +12,11 @@ TreatSession::TreatSession(QObject *parent) : QObject(parent)
     m_pa = new PowerAmp(this);
     m_do = new DOController(this);
 
+    if (!exist())
+    {
+        emit error("Cannot find the HIFU driver!");
+    }
+
     resetSessionRecorder();
     setActionString();
     setErrorString();
@@ -273,6 +278,7 @@ void TreatSession::stop()
 
     //  reset the session param
     resetSessionRecorder();
+    m_spots.clear();
 }
 
 void TreatSession::pause()

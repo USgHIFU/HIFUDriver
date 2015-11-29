@@ -33,6 +33,7 @@ public:
     inline _SesRec getRecorder() { return m_recorder; }
 //  update the status after sonications finished
     inline QHash<QString, QVariant> getStatus() { return m_status; }
+    inline bool exist() { return m_pa->exist() && m_do->exist(); }
 
 public slots:
     void start();
@@ -41,9 +42,10 @@ public slots:
     void resume();
 
 signals:
-    readyStart();
-    sessionCompleted();
-    statusUpdate();
+    void error(QString);
+    void readyStart();
+    void sessionCompleted();
+    void statusUpdate();
 
 private slots:
     void timeoutFcn();

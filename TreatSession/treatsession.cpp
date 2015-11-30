@@ -12,6 +12,11 @@ TreatSession::TreatSession(QObject *parent) : QObject(parent)
     m_pa = new PowerAmp(this);
     m_do = new DOController(this);
 
+    if (!exist())
+    {
+        emit error("Cannot find the HIFU driver!");
+    }
+
     resetSessionRecorder();
     setActionString();
     setErrorString();
@@ -87,9 +92,22 @@ void TreatSession::start()
 
 void TreatSession::updateStatus()
 {
+    int allSpotsCount;
+    allSpotsCount = 0;
+    QHash<float, QList<_3DCor> >::iterator i = m_spots.find(m_currPlane);
+    for(;i!=m_spots.end();i++)
+    {
+        allSpotsCount += i.value().size();
+    }
+
+    //left time:unit(s)
+    float leftTime = float((allSpotsCount * m_sessionParam.periodCount - m_recorder.periodIndex) * m_sonicationParam.period) / float(1000)
+            + float((allSpotsCount - 1) * m_sessionParam.coolingTime) / float(1000);
+
     m_status["SonicatedSpot"] = QVariant(m_recorder.spotIndex);
     m_status["SonicatedPlane"] = QVariant(m_currPlane);
     m_status["SpotCount"] = QVariant(m_sessionParam.spotCount);
+    m_status["LeftTime"] = QVariant(leftTime);
     emit statusUpdate();
 }
 
@@ -126,6 +144,16 @@ void TreatSession::changeSpot()
     real_T volt[DEV_COUNT_MAX];
     real_T angle[DEV_COUNT_MAX];
     PhaseInfo(1,x,y,z,volt,angle);
+    //  The phases of #22 and #23, #35 and #36, and #55 and #56 are inverted
+    double value = angle[21];
+    angle[21] = angle[22];
+    angle[22] = value;
+    value = angle[34];
+    angle[34] = angle[35];
+    angle[35] = value;
+    value = angle[54];
+    angle[54] = angle[55];
+    angle[55] = value;
 
     if (m_do->exist())
     {
@@ -185,6 +213,24 @@ void TreatSession::offDuty()
         qCDebug(Session()) << Session().categoryName()
                            << "The #" << m_recorder.spotIndex
                            << " spot is finished.";
+
+        //echo voltage values of 144 channels after finishing sonication of a spot
+        QList<QVariant> errorId;
+        for (int i = 0; i < DEV_COUNT_MAX; i++)
+        {
+             VOLT volt = m_pa->echoVolt(i);
+             if(volt < 0)
+                 errorId.append(i);
+        }
+        m_status["EchoVoltErrorID"] = QVariant(errorId);
+
+        for(int i = 0; i < m_status["EchoVoltErrorID"].toList().size(); i++)
+        {
+            qCWarning(Session()) << Session().categoryName()
+                                 << "Echo Voltage after sonication failed : #"
+                                 << m_status["EchoVoltErrorID"].toList().value(i).toInt();
+        }
+
         changeSpot();
     }
 }
@@ -263,6 +309,7 @@ void TreatSession::stop()
 
     //  reset the session param
     resetSessionRecorder();
+    m_spots.clear();
 }
 
 void TreatSession::pause()

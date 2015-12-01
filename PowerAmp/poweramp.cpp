@@ -4,6 +4,9 @@
 
 #include "math.h"
 #include "poweramp.h"
+#include "time.h"
+
+#define FENG true
 
 Q_LOGGING_CATEGORY(PA,"POWER AMPLIFIER")
 
@@ -43,8 +46,12 @@ void PowerAmp::initialize()
     qCDebug(PA()) << PA().categoryName() << "Initialization...";
     for (int i=1;i<=DEV_TEST_COUNT;i++)
     {
+#ifdef FENG
+        int ranId = i;
+#else
         //  Generate a random id of PA channel
-        int ranId = genRanId();        
+        int ranId = genRanId();
+#endif
         readSettings();
         m_serialPort = new QSerialPort(m_portName);
 
@@ -394,6 +401,7 @@ bool PowerAmp::startAll(VOLT volt)
     bool success = false;
     QList<int> errorId;
 
+    double time_Start = (double)clock();
     for (int id=1;id<=DEV_COUNT_MAX;id++)
     {
         int safeCounter = 0;
@@ -411,6 +419,9 @@ bool PowerAmp::startAll(VOLT volt)
             }
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "startAll Time: "<< (time_End - time_Start) / 1000.0 << "s";
 
     if (!errorId.isEmpty())
     {
@@ -454,6 +465,7 @@ bool PowerAmp::startAll2(VOLT volt)
     QByteArray baVolt = computeBaVolt(START,volt);
     QByteArray baCheck = computeBaCheck(baId,baVolt);
 
+    double time_Start = (double)clock();
     if (open())
     {
         m_serialPort->write(baId+baVolt+baCheck);
@@ -469,6 +481,9 @@ bool PowerAmp::startAll2(VOLT volt)
             m_errorId.append(i);
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "startAll2 Time: "<< (time_End - time_Start) / 1000.0 << "s";
 
     if (m_errorId.isEmpty())
     {
@@ -527,6 +542,7 @@ bool PowerAmp::resetAll()
 
     QList<int> errorId;
 
+    double time_Start = (double)clock();
     for (int id=1;id<=DEV_COUNT_MAX;id++)
     {
         int safeCounter = 0;
@@ -556,6 +572,9 @@ bool PowerAmp::resetAll()
             }
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "resetAll Time: "<< (time_End - time_Start) / 1000.0 << "s";
 
     if (m_errorId.isEmpty())
     {
@@ -589,6 +608,7 @@ bool PowerAmp::resetAll2()
     baSend[3] = 0x00;
     baSend[4] = 0x00;
 
+    double time_Start = (double)clock();
     if (open())
     {
         m_serialPort->write(baSend);
@@ -604,6 +624,10 @@ bool PowerAmp::resetAll2()
             m_errorId.append(i);
         }
     }
+    double time_End = (double)clock();
+    qCWarning(PA()) << PA().categoryName()
+                    << "resetAll2 Time: "<< (time_End - time_Start) / 1000.0 << "s";
+
     if (m_errorId.isEmpty())
     {
         success = true;

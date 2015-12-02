@@ -92,22 +92,48 @@ void TreatSession::start()
 
 void TreatSession::updateStatus()
 {
-    int allSpotsCount;
-    allSpotsCount = 0;
+    int remainingSpotCount;
+    remainingSpotCount = 0;
     QHash<float, QList<_3DCor> >::iterator i = m_spots.find(m_currPlane);
     for(;i!=m_spots.end();i++)
     {
-        allSpotsCount += i.value().size();
+        remainingSpotCount += i.value().size();
     }
 
-    //left time:unit(s)
-    float leftTime = float((allSpotsCount * m_sessionParam.periodCount - m_recorder.periodIndex) * m_sonicationParam.period) / float(1000)
-            + float((allSpotsCount - 1) * m_sessionParam.coolingTime) / float(1000);
+    float sonicationTime = float(m_sonicationParam.totalTime) / float(m_sonicationParam.dutyCycle) * PERCENT_UNIT;
+    qWarning() << "sonicationTime:" << sonicationTime;
+    float operationTime = sonicationTime + m_sessionParam.coolingTime / MS_UNIT;
+    qWarning() << "operationTime:" << operationTime;
 
-    m_status["SonicatedSpot"] = QVariant(m_recorder.spotIndex);
+    //Remaining time(s)
+    float remainingTime = remainingSpotCount * operationTime;
+
+//    m_status["SonicatedSpot"] = QVariant(m_recorder.spotIndex);
+    m_status["RemainingSpot"] = QVariant(remainingSpotCount);
     m_status["SonicatedPlane"] = QVariant(m_currPlane);
-    m_status["SpotCount"] = QVariant(m_sessionParam.spotCount);
-    m_status["LeftTime"] = QVariant(leftTime);
+//    m_status["SpotCount"] = QVariant(m_sessionParam.spotCount);
+    m_status["RemainingTime"] = QVariant(remainingTime);
+
+    if (m_pa->exist())
+    {
+        //echo voltage values of 144 channels after finishing sonication of a spot
+        QList<QVariant> errorId;
+        for (int i = 0; i < DEV_COUNT_MAX; i++)
+        {
+             VOLT volt = m_pa->echoVolt(i);
+             if(volt < 0)
+                 errorId.append(i);
+        }
+        m_status["EchoVoltErrorID"] = QVariant(errorId);
+
+        for(int i = 0; i < m_status["EchoVoltErrorID"].toList().size(); i++)
+        {
+            qCWarning(Session()) << Session().categoryName()
+                                 << "Echo Voltage after sonication failed : #"
+                                 << m_status["EchoVoltErrorID"].toList().value(i).toInt();
+        }
+    }
+
     emit statusUpdate();
 }
 
@@ -213,24 +239,6 @@ void TreatSession::offDuty()
         qCDebug(Session()) << Session().categoryName()
                            << "The #" << m_recorder.spotIndex
                            << " spot is finished.";
-
-        //echo voltage values of 144 channels after finishing sonication of a spot
-        QList<QVariant> errorId;
-        for (int i = 0; i < DEV_COUNT_MAX; i++)
-        {
-             VOLT volt = m_pa->echoVolt(i);
-             if(volt < 0)
-                 errorId.append(i);
-        }
-        m_status["EchoVoltErrorID"] = QVariant(errorId);
-
-        for(int i = 0; i < m_status["EchoVoltErrorID"].toList().size(); i++)
-        {
-            qCWarning(Session()) << Session().categoryName()
-                                 << "Echo Voltage after sonication failed : #"
-                                 << m_status["EchoVoltErrorID"].toList().value(i).toInt();
-        }
-
         changeSpot();
     }
 }

@@ -27,10 +27,13 @@ public:
     ~TreatSession();    
 
 //  TODO: get spots of different planes
+//  Length unit : mm, angle unit : degree
     void setSpots(QHash<float,QList<_3DCor> > spots);
     void setSonicationParam(_SoniParam params);
     inline _SesRec getRecorder() { return m_recorder; }
+//  Update the status after sonications finished
     inline QHash<QString, QVariant> getStatus() { return m_status; }
+    inline bool exist() { return m_pa->exist() && m_do->exist(); }
 
 public slots:
     void start();
@@ -39,12 +42,13 @@ public slots:
     void resume();
 
 signals:
-    readyStart();
-    sessionCompleted();
-    statusUpdate();
+    void error(QString);
+    void readyStart();
+    void sessionCompleted();
+    void statusUpdate();
 
 private slots:
-    void timeoutFcn();
+    void onSessionCompleted();
 
 private:
     enum SessionType
@@ -62,14 +66,15 @@ private:
     QHash<float,QList<_3DCor> > m_spots;
     QHash<float,QList<int> > m_spotOrder;
     _SoniParam m_sonicationParam;
-    float m_currPlane;
+    //  Angle of current plane
+    float m_angleCurrentPlane;
 
-    //  the parameters used for the treat session
+    //  Parameters for the treat session
     _SesParam m_sessionParam;
     _SesRec m_recorder;
-    SessionType m_currType;
+    SessionType m_currentType;
 
-    QTimer* m_timer;
+    QTimer* m_sessionTimer;
     QStringList m_actionString;
     QStringList m_errorString;
 

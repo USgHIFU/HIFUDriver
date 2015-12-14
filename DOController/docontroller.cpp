@@ -25,10 +25,6 @@ void DOController::selectDevice(QString deviceName)
     ErrorCode errorCode = Success;
     errorCode = m_instantDoCtrl->setSelectedDevice(selected);
     m_instantDoCtrl = ((errorCode == ErrorDeviceNotExist) ? NULL : m_instantDoCtrl);
-//    if (errorCode == ErrorDeviceNotExist)
-//    {
-//        m_instantDoCtrl = NULL;
-//    }
     checkError(errorCode);
 }
 
@@ -59,24 +55,6 @@ void DOController::sendPhase(quint8 channel, quint8 phase)
 
 void DOController::loadPhase()
 {
-//    quint8 byteForLoad = (quint8)128;
-//    quint8 byteForLock = (quint8)0;
-//    writeData(PORT_LOAD,byteForLoad);
     writeData(PORT_LOAD,BYTE_LOAD);
-//    writeData(PORT_LOAD,byteForLock);
     writeData(PORT_LOAD,BYTE_LOCK);
 }
-
-//void DOController::enable()
-//{
-//    quint8 byteForEnable = (quint8)64;
-//    writeData(PORT_ENABLE,byteForEnable);
-//    writeData(PORT_ENABLE,BYTE_ENABLE);
-//}
-
-//void DOController::disable()
-//{
-//    quint8 byteForDisable = (quint8)0;
-//    writeData(PORT_DISABLE,byteForDisable);
-//    writeData(PORT_DISABLE,BYTE_DISABLE);
-//}

@@ -103,7 +103,7 @@ void PowerAmp::setPort()
                 return;
             }
         }
-        delete m_serialPort;
+        delete m_serialPort;        
     }
     m_serialPort = NULL;
     qCWarning(PA()) << PA().categoryName() << "Failed to initialize.";
@@ -278,7 +278,7 @@ QByteArray PowerAmp::computeBaCheck(QByteArray baId, QByteArray baVolt)
 {
     QByteArray baCheck;
     if (baId.isEmpty() || baVolt.isEmpty())
-    {
+    {        
     }else
     {
         char sum = baId[1] + baId[0] + baVolt[1] + baVolt[0];
@@ -312,7 +312,7 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
                       (baReceive[3] == baSend[3]) &&
                       (baReceive[4] == baSend[4]));
             break;
-        case 0x10: case 0x20:
+        case 0x10: case 0x20:            
             break;
         default:
             checked = false;
@@ -326,7 +326,7 @@ bool PowerAmp::checkReceivedBytes(QByteArray baReceive, QByteArray baSend)
 //  TODO: template function for ba2volt and ba2temp
 
 VOLT PowerAmp::ba2volt(QByteArray baEcho)
-{
+{    
     int intVolt = (int)baEcho[2] * 128 + (int)baEcho[3];
     VOLT volt = double(intVolt) / double(10);
     return volt;
@@ -531,7 +531,7 @@ bool PowerAmp::resetAll()
     if (!errorId.isEmpty())
     {
         for(int i=0;i<errorId.size();i++)
-        {
+        {            
             if (echoVolt(errorId.at(i)) == -1)
             {
                 qDebug() << "#" << errorId.at(i) << "Failed to reset.";

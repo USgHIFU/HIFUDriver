@@ -45,7 +45,7 @@ public:
 
 public slots:
     bool resetAll();
-    bool startAll(VOLT volt);    
+    bool startAll(VOLT volt);
 
 signals:
     void error(QString errorString);
